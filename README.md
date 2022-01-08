@@ -8,9 +8,4 @@ Written in Python with Pillow and tkinter<br >
 2. Greyscaling
 3. RGB shifter
    - Overflow wrap included!
-4. Median brightness counter
-# Known bugs
-- [ ] Secondary windows defocusing when selecting files
-- [ ] Text in secondary windows overlapping
-# Features to be made
-- [ ] Image converter _(because why not?)_
+4. Average brightness counter
