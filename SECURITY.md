@@ -10,4 +10,4 @@ Curently supported versions: all
 
 ## Reporting a Vulnerability
 
-Write a report to https://github.com/RodionGromo/image-modifer/issues, i will be reading them if any will appear
+Write a report to [Issues](https://github.com/RodionGromo/image-modifer/issues), i will be reading them if any will appear
