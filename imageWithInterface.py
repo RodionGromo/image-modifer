@@ -4,26 +4,126 @@ from tkinter.filedialog import askopenfile
 import tkinter.ttk as ttk
 from PIL import Image,ImageDraw,ImageFont
 import math
-
+version = "0.1"
+currentTranslation = 0
+translations = ({
+	"Language": "EN",
+	"done": "Done",
+	"save": "Save",
+	"openImage": "Open image",
+	"no": "No",
+	"wip": "Not implemented yet",
+	"start": "Start",
+	"ok": "Ok",
+	"ready": "Ready",
+	"images": "Images",
+	"saveInfo": "Image will be saved in app directory",
+	"info": "Info",
+	"askFilename": "Filename",
+	"doneBtn": "Done",
+	"normalisingAct": "Normalising",
+	"noImage": "No image",
+	"funcAppInfo1": "Select image and press 'Start'",
+	"startBtn": "Start",
+	"normText1": "Normaliser",
+	"normText2": "Image normaliser",
+	"greyscaleAct": "Greyscaling",
+	"greyscaleText1": "Greyscaler",
+	"greyscaleText2": "Greyscale an image",
+	"RGBShiftTextAct": "Shifting",
+	"RGBShiftText1": "RGB shift",
+	"RGBShiftText2": "RGB shifter",
+	"RedShiftText": "Red shift",
+	"GreenShiftText": "Green shift",
+	"BlueShiftText": "Blue shift",
+	"BrightnessAct": "Calculating",
+	"BrightnessText1": "Median brightness",
+	"BrightnessText2": "Finding median brightness",
+	"SelectorAppTitle": f"Image Modifier v{version}",
+	"SelectorAppText1.1": "Choose an action",
+	"SendFeedbackBtn": "Send feedback",
+	"ExitBtn": "Exit",
+	"noChanges": "No changes made"
+},{
+	"Language": "RU",
+	"done": "Готово",
+	"save": "Сохранить",
+	"no": "Нет",
+	"start": "Начать",
+	"openImage": "Открыть картинку",
+	"wip": "Еще не сделал",
+	"ok": "Ок",
+	"ready": "Готов к работе",
+	"images": "Изображения",
+	"saveInfo": "Изображение будет сохранено в папке программы",
+	"info": "Инфо",
+	"askFilename": "Имя файла",
+	"doneBtn": "Готово",
+	"normalisingAct": "Нормализируем",
+	"noImage": "Нет картинки",
+	"funcAppInfo1": "Выберите изображение и нажмите 'Начать'",
+	"startBtn": "Начать",
+	"normText1": "Нормализатор",
+	"normText2": "Нормализатор картинок",
+	"greyscaleAct": "Ч/Б'шаем",
+	"greyscaleText1": "Ч/Б преобразователь",
+	"greyscaleText2": "Преобразовать в оттенки серого",
+	"RGBShiftTextAct": "Сдвигаем",
+	"RGBShiftText1": "Сдвигатель RGB",
+	"RGBShiftText2": "Сдвигатель RGB",
+	"RedShiftText": "Сдвиг красного",
+	"GreenShiftText": "Сдвиг зеленого",
+	"BlueShiftText": "Сдвиг синего",
+	"BrightnessAct": "Считаем",
+	"BrightnessText1": "Средняя яркость",
+	"BrightnessText2": "Подсчет средней яркости",
+	"SelectorAppTitle": f"Преобразователь картинок v{version}",
+	"SelectorAppText1.1": "Выберите действие",
+	"SendFeedbackBtn": "Отзыв",
+	"ExitBtn": "Выйти",
+	"noChanges": "Нет изменений"
+})
 functApp = None;
 imagePath = None;
 progressBar = None;
 statusLabel = None;
 filename = None;
+functAppActive = False;
+LanguageSelector = None;
+def nextLanguage():
+	glVars = globals()
+	if(glVars["currentTranslation"] < len(glVars["translations"])-1):
+		glVars["currentTranslation"] += 1
+	else:
+		glVars["currentTranslation"] = 0
+	glVars["LanguageSelector"]['text'] = translations[currentTranslation]["Language"]
+	selectorApp.title(translations[currentTranslation]["SelectorAppTitle"])
+	MainText['text'] = translations[currentTranslation]["SelectorAppTitle"]+"\n"+translations[currentTranslation]["SelectorAppText1.1"]+":"
+	NormaliseBtn['text'] = translations[currentTranslation]["normText1"]
+	BrightnessBtn['text'] = translations[currentTranslation]["greyscaleText1"]
+	ShiftRGBBtn['text'] = translations[currentTranslation]["RGBShiftText1"]
+	GetMedianBrightnessBtn['text'] = translations[currentTranslation]["BrightnessText1"]
+	SendFeedbackBtn['text'] = translations[currentTranslation]["SendFeedbackBtn"]
+	exitBtn['text'] = translations[currentTranslation]["ExitBtn"]
+	selectorApp.update_idletasks()
+
+
 def exitAll():
-	global functApp,selectorApp
-	if(functApp != None):
+	global functApp,selectorApp,functAppActive
+	try:
 		functApp.destroy();
-	if(selectorApp != None):
+	except (tk.TclError,AttributeError) as e:
+		pass
+	if(selectorApp != "." or selectorApp != None):
 		selectorApp.destroy();
 
 def showFeedbackMenu():
 	global functApp
 	functApp = tk.Tk()
-	functApp.title("Нет")
+	functApp.title(translations[currentTranslation]["no"])
 	functApp.geometry("120x50")
-	noText = tk.Label(master=functApp,text="Нет")
-	exitBtn = tk.Button(master=functApp,text="Понял, ухожу",command=exitAll)
+	noText = tk.Label(master=functApp,text=translations[currentTranslation]["wip"])
+	exitBtn = tk.Button(master=functApp,text=translations[currentTranslation]["ok"],command=functApp.destroy)
 	noText.pack()
 	exitBtn.pack()
 
@@ -35,9 +135,9 @@ def sumArr(arr):
 
 def getImage():
 	global imagePath,statusLabel,functApp
-	ret = askopenfile(filetypes=[("Картинки",("*.png","*.jpeg","*.jpg"))])
+	ret = askopenfile(filetypes=[(translations[currentTranslation]["images"],("*.png","*.jpeg","*.jpg"))])
 	if(ret != None):
-		statusLabel['text'] = "Готов к работе!"
+		statusLabel['text'] = translations[currentTranslation]["ready"]
 		functApp.update_idletasks()
 		imagePath = ret.name
 
@@ -56,17 +156,18 @@ def normaliseRGB(rgbTuple):
 def saveImage(imageObject):
 	global filename
 	def sF():
+		showInfo(translations[currentTranslation]["info"],translations[currentTranslation]["saveInfo"])
 		global filename
 		file = open(input1.get()+".png",'wb')
 		imageObject.save(file)
 		aFA.destroy()
 	aFA = tk.Tk()
-	aFA.title("Сохранить")
-	text1 = tk.Label(master=aFA,text="Имя файла?")
+	aFA.title(translations[currentTranslation]["save"])
+	text1 = tk.Label(master=aFA,text=translations[currentTranslation]["askFilename"])
 	text1.pack()
 	input1 = tk.Entry(master=aFA)
 	input1.pack()
-	doneBtn = tk.Button(master=aFA,text="Готово",command=sF);
+	doneBtn = tk.Button(master=aFA,text=translations[currentTranslation]["done"],command=sF);
 	doneBtn.pack()
 	aFA.mainloop()
 
@@ -84,7 +185,7 @@ def startNormalising():
 		pixels = image.load()
 		imageW,imageH = image.size
 		totalPixels = imageH * imageW
-		statusLabel['text'] = "Нормализуем..."
+		statusLabel['text'] = translations[currentTranslation]["normalisingAct"]
 		functApp.update_idletasks()
 		fontSize = math.ceil((imageW / 2)/28)
 		imgBlank = Image.new("RGB",image.size,(0,0,0))
@@ -98,31 +199,33 @@ def startNormalising():
 					lastPerc = perc
 				imgBlank.putpixel((x,y),normaliseRGB(pixels[x,y]))	
 				pixelDraw += 1
-		statusLabel['text'] = "Готово!"
+		statusLabel['text'] = translations[currentTranslation]["done"]
 		functApp.update_idletasks()
 		saveImage(imgBlank)
 	else:
-		statusLabel['text'] = "Нет картинки"
+		statusLabel['text'] = translations[currentTranslation]["noImage"]
 		functApp.update_idletasks()
 
 def createFuncApp(titleTop,titleBox,resoluton,startBtnFunc):
 	global functApp,progressBar,statusLabel
+	functAppActive = True;
 	functApp = tk.Tk()
+	functApp.resizable(0,0)
 	functApp.title(titleTop)
 	functApp.geometry(resoluton)
-	welcomeText = tk.Label(master=functApp,text=f"{titleBox}\nВыберите картинку и жмите 'Начать!'")
+	welcomeText = tk.Label(master=functApp,text=titleBox+"\n"+translations[currentTranslation]["funcAppInfo1"])
 	welcomeText.pack()
-	getImageBtn = tk.Button(master=functApp,text="Открыть картинку",command=getImage)
+	getImageBtn = tk.Button(master=functApp,text=translations[currentTranslation]["openImage"],command=getImage)
 	getImageBtn.pack()
-	startNormalisingBtn = tk.Button(master=functApp,text="Начать!",command=startBtnFunc)
+	startNormalisingBtn = tk.Button(master=functApp,text=translations[currentTranslation]["start"]+"!",command=startBtnFunc)
 	startNormalisingBtn.pack()
 	progressBar = ttk.Progressbar(master=functApp,orient="horizontal",mode="determinate",length=100)
 	progressBar.pack()
-	statusLabel = tk.Label(master=functApp,text="Нет картинки")
+	statusLabel = tk.Label(master=functApp,text=translations[currentTranslation]["noImage"])
 	statusLabel.pack()
 
 def normaliseImage():
-	createFuncApp("Нормализатор","Нормализатор картинок","250x125",startNormalising)
+	createFuncApp(translations[currentTranslation]["normText1"],translations[currentTranslation]["normText2"],"250x125",startNormalising)
 
 def calcBrightness(rgbTuple):
 	return math.floor((rgbTuple[0] + rgbTuple[1] +  rgbTuple[2]) / 3)
@@ -140,7 +243,7 @@ def startGreyscaling():
 		pixels = image.load()
 		imageW,imageH = image.size
 		totalPixels = imageH * imageW
-		statusLabel['text'] = "Ч/Б'шаем..."
+		statusLabel['text'] = translations[currentTranslation]["greyscaleAct"]
 		functApp.update_idletasks()
 		fontSize = math.ceil((imageW / 2)/28)
 		imgBlank = Image.new("L",image.size,0)
@@ -154,15 +257,15 @@ def startGreyscaling():
 					lastPerc = perc
 				imgBlank.putpixel([x,y],calcBrightness(pixels[x,y]))
 				pixelDraw += 1
-		statusLabel['text'] = "Готово!"
+		statusLabel['text'] = translations[currentTranslation]["done"]
 		functApp.update_idletasks()
 		saveImage(imgBlank)
 	else:
-		statusLabel['text'] = "Нет картинки"
+		statusLabel['text'] = translations[currentTranslation]["noImage"]
 		functApp.update_idletasks()
 
 def greyscaleImage():
-	createFuncApp("Ч/Б преобразователь","Ч/Б преобразователь картинок","250x120",startGreyscaling)
+	createFuncApp(translations[currentTranslation]["greyscaleText1"],translations[currentTranslation]["greyscaleText2"],"250x130",startGreyscaling)
 
 def overflowAdd(number,maximum,additive):
 	left = 0
@@ -179,7 +282,15 @@ def shiftRGB(rgbTuple,shiftRGBTuple):
 
 def startShifing():
 	global progressBar,functApp,imagePath,statusLabel,redEntry,greenEntry,blueEntry
-	if(imagePath != None):
+	shiftRGBTuple = ()
+	err = False
+	try:
+		shiftRGBTuple = (int(redEntry.get()),int(greenEntry.get()),int(blueEntry.get()))
+	except ValueError as e:
+		err = True
+
+	if(imagePath != None and err == False):
+		shiftRGBTuple = (int(redEntry.get()),int(greenEntry.get()),int(blueEntry.get()))
 		rgbTuples = []
 		lastPerc = 0;
 		readPixels = 0;
@@ -190,7 +301,7 @@ def startShifing():
 		pixels = image.load()
 		imageW,imageH = image.size
 		totalPixels = imageH * imageW
-		statusLabel['text'] = "Сдвигаем..."
+		statusLabel['text'] = translations[currentTranslation]["RGBShiftTextAct"]
 		functApp.update_idletasks()
 		fontSize = math.ceil((imageW / 2)/28)
 		imgBlank = Image.new("RGB",image.size,(255,255,255))
@@ -202,27 +313,30 @@ def startShifing():
 					progressBar['value'] = perc
 					functApp.update_idletasks()
 					lastPerc = perc
-				imgBlank.putpixel([x,y],shiftRGB(pixels[x,y],(int(redEntry.get()),int(greenEntry.get()),int(blueEntry.get()))))
+				imgBlank.putpixel([x,y],shiftRGB(pixels[x,y],shiftRGBTuple))
 				pixelDraw += 1
-		statusLabel['text'] = "Готово!"
+		statusLabel['text'] = translations[currentTranslation]["done"]
 		functApp.update_idletasks()
 		saveImage(imgBlank)
+	elif(err == True):
+		statusLabel['text'] = translations[currentTranslation]["noChanges"]
+		functApp.update_idletasks()
 	else:
-		statusLabel['text'] = "Нет картинки"
+		statusLabel['text'] = translations[currentTranslation]["noImage"]
 		functApp.update_idletasks()
 
 def shiftRGBImage():
-	createFuncApp("Сдвигатель RGB значений","Сдвигатель RGB значений","250x260",startShifing)
+	createFuncApp(translations[currentTranslation]["RGBShiftText1"],translations[currentTranslation]["RGBShiftText2"],"250x260",startShifing)
 	global functApp,redEntry,greenEntry,blueEntry
-	redText = tk.Label(master=functApp,text="Сдвиг красного цвета (1-255)")
+	redText = tk.Label(master=functApp,text=translations[currentTranslation]["RedShiftText"] + " (1-255)")
 	redText.pack()
 	redEntry = tk.Entry(master=functApp)
 	redEntry.pack()
-	greenText = tk.Label(master=functApp,text="Сдвиг зеленого цвета (1-255)")
+	greenText = tk.Label(master=functApp,text=translations[currentTranslation]["GreenShiftText"] + " (1-255)")
 	greenText.pack()
 	greenEntry = tk.Entry(master=functApp)
 	greenEntry.pack()
-	blueText = tk.Label(master=functApp,text="Сдвиг синего цвета (1-255)")
+	blueText = tk.Label(master=functApp,text=translations[currentTranslation]["BlueShiftText"] + " (1-255)")
 	blueText.pack()
 	blueEntry = tk.Entry(master=functApp)
 	blueEntry.pack()
@@ -231,11 +345,11 @@ def showInfo(topTitle,info):
 	def closeInfo():
 		infoApp.destroy()
 	infoApp = tk.Tk()
-	infoApp.geometry("150x50")
-	infoApp.title("topTitle")
+	infoApp.geometry("300x50")
+	infoApp.title(topTitle)
 	info = tk.Label(master=infoApp,text=info)
 	info.pack()
-	exitBtn = tk.Button(master=infoApp,text="Ок",command=closeInfo)
+	exitBtn = tk.Button(master=infoApp,text=translations[currentTranslation]["ok"],command=closeInfo)
 	exitBtn.pack()
 
 def findBrightness():
@@ -251,7 +365,7 @@ def findBrightness():
 		pixels = image.load()
 		imageW,imageH = image.size
 		totalPixels = imageH * imageW
-		statusLabel['text'] = "Считаем..."
+		statusLabel['text'] = translations[currentTranslation]["BrightnessAct"]
 		functApp.update_idletasks()
 		fontSize = math.ceil((imageW / 2)/28)
 		imgBlank = Image.new("RGB",image.size,(255,255,255))
@@ -268,32 +382,34 @@ def findBrightness():
 				imgBlank.putpixel([x,y],calcBrightness(pixels[x,y]))
 				pixelDraw += 1
 		brightness = math.floor((((sumArr(pixelBrightness) / len(pixelBrightness)-1) / 255) * 100) *10)/10
-		statusLabel['text'] = "Готово!"
+		statusLabel['text'] = translations[currentTranslation]["done"]
 		functApp.update_idletasks()
-		showInfo("Готов!",f"Средняя яркость: {brightness}%")
+		showInfo(translations[currentTranslation]["done"],translations[currentTranslation]["BrightnessText1"]+f": {brightness}%")
 	else:
-		statusLabel['text'] = "Нет картинки"
+		statusLabel['text'] = translations[currentTranslation]["noImage"]
 		functApp.update_idletasks()
 
 def getMedianBrightness():
-	createFuncApp("Средняя яркость","Нахождение средней яркости изображения","250x125",findBrightness)
+	createFuncApp(translations[currentTranslation]["BrightnessText1"],translations[currentTranslation]["BrightnessText2"],"250x125",findBrightness)
 
 selectorApp = tk.Tk()
-selectorApp.title("Модификатор картинок v0.1")
+selectorApp.title(translations[currentTranslation]["SelectorAppTitle"])
 selectorApp.geometry("300x170")
 selectorApp.resizable(0,0)
-MainText = tk.Label(master=selectorApp,text="Преобразователь картинок v0.1\nВыберите действие:")
+MainText = tk.Label(master=selectorApp,text=translations[currentTranslation]["SelectorAppTitle"]+"\n"+translations[currentTranslation]["SelectorAppText1.1"]+":")
 MainText.pack()
-NormaliseBtn = tk.Button(master=selectorApp,text="Нормализовать",command=normaliseImage)
+NormaliseBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["normText1"],command=normaliseImage)
 NormaliseBtn.pack()
-BrightnessBtn = tk.Button(master=selectorApp,text="Преобразовать в оттенки серого",command=greyscaleImage)
+BrightnessBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["greyscaleText1"],command=greyscaleImage)
 BrightnessBtn.pack()
-ShiftRGBBtn = tk.Button(master=selectorApp,text="Сдвиг цвета",command=shiftRGBImage)
+ShiftRGBBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["RGBShiftText1"],command=shiftRGBImage)
 ShiftRGBBtn.pack()
-GetMedianBrightnessBtn = tk.Button(master=selectorApp,text="Найти среднюю яркость изображения",command=getMedianBrightness)
+GetMedianBrightnessBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["BrightnessText1"],command=getMedianBrightness)
 GetMedianBrightnessBtn.pack()
-SendFeedbackBtn = tk.Button(master=selectorApp,text="Оставить отзыв",command=showFeedbackMenu)
+SendFeedbackBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["SendFeedbackBtn"],command=showFeedbackMenu)
 SendFeedbackBtn.pack_configure(side='right')
-exitBtn = tk.Button(master=selectorApp,text="Выход",command=exitAll)
+exitBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["ExitBtn"],command=exitAll)
 exitBtn.pack_configure(side='left')
+LanguageSelector = tk.Button(master=selectorApp,text=translations[currentTranslation]["Language"],command=nextLanguage)
+LanguageSelector.place(anchor="nw")
 selectorApp.mainloop()
