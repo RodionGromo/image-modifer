@@ -92,10 +92,7 @@ imagePath = None;
 progressBar = None;
 statusLabel = None;
 filename = None;
-functAppActive = False;
 LanguageSelector = None;
-
-checkboxes = []
 
 settings = {
 	"showRes": True
@@ -120,7 +117,7 @@ def nextLanguage():
 
 
 def exitAll():
-	global functApp,selectorApp,functAppActive
+	global functApp,selectorApp
 	try:
 		functApp.destroy();
 	except (tk.TclError,AttributeError) as e:
@@ -175,7 +172,6 @@ def getImage():
 		imagePath = ret.name
 
 def normaliseRGB(rgbTuple):
-	#print(f"got {rgbTuple}")
 	summ = sumArr(rgbTuple)
 	if(summ != 0):
 		normR = math.floor((rgbTuple[0] / summ) * 255)
@@ -244,7 +240,6 @@ def startNormalising():
 
 def createFuncApp(titleTop,titleBox,resoluton,startBtnFunc):
 	global functApp,progressBar,statusLabel
-	functAppActive = True;
 	functApp = tk.Tk()
 	functApp.focus_set()
 	functApp.resizable(0,0)
