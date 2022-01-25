@@ -1,18 +1,16 @@
 import tkinter as tk
-from tkinter import StringVar
+from tkinter import StringVar,Canvas,BooleanVar
 from tkinter.filedialog import askopenfile
 import tkinter.ttk as ttk
-from PIL import Image,ImageDraw,ImageFont
+from PIL import Image,ImageDraw,ImageFont,ImageTk
 import math
-version = "0.1"
+version = "0.1.1"
 currentTranslation = 0
 translations = ({
 	"Language": "EN",
 	"done": "Done",
 	"save": "Save",
 	"openImage": "Open image",
-	"no": "No",
-	"wip": "Not implemented yet",
 	"start": "Start",
 	"ok": "Ok",
 	"ready": "Ready",
@@ -41,17 +39,20 @@ translations = ({
 	"BrightnessText2": "Finding median brightness",
 	"SelectorAppTitle": f"Image Modifier v{version}",
 	"SelectorAppText1.1": "Choose an action",
-	"SendFeedbackBtn": "Send feedback",
 	"ExitBtn": "Exit",
-	"noChanges": "No changes made"
+	"noChanges": "No changes made",
+	"result": "Result",
+	"settingsTitle": "App settings",
+	"setting:showRes": "Show results",
+	"SettingsBtn": "Settings",
+	"settingsMainText": "Change app to your preferences"
 },{
 	"Language": "RU",
+	"result": "Итог",
 	"done": "Готово",
 	"save": "Сохранить",
-	"no": "Нет",
 	"start": "Начать",
 	"openImage": "Открыть картинку",
-	"wip": "Еще не сделал",
 	"ok": "Ок",
 	"ready": "Готов к работе",
 	"images": "Изображения",
@@ -79,9 +80,12 @@ translations = ({
 	"BrightnessText2": "Подсчет средней яркости",
 	"SelectorAppTitle": f"Преобразователь картинок v{version}",
 	"SelectorAppText1.1": "Выберите действие",
-	"SendFeedbackBtn": "Отзыв",
 	"ExitBtn": "Выйти",
-	"noChanges": "Нет изменений"
+	"noChanges": "Нет изменений",
+	"settingsTitle": "Настройки приложения",
+	"setting:showRes": "Показывать результат",
+	"SettingsBtn": "Настройки",
+	"settingsMainText": "Настройте приложение по вкусу"
 })
 functApp = None;
 imagePath = None;
@@ -90,6 +94,13 @@ statusLabel = None;
 filename = None;
 functAppActive = False;
 LanguageSelector = None;
+
+checkboxes = []
+
+settings = {
+	"showRes": True
+}
+
 def nextLanguage():
 	glVars = globals()
 	if(glVars["currentTranslation"] < len(glVars["translations"])-1):
@@ -103,7 +114,7 @@ def nextLanguage():
 	BrightnessBtn['text'] = translations[currentTranslation]["greyscaleText1"]
 	ShiftRGBBtn['text'] = translations[currentTranslation]["RGBShiftText1"]
 	GetMedianBrightnessBtn['text'] = translations[currentTranslation]["BrightnessText1"]
-	SendFeedbackBtn['text'] = translations[currentTranslation]["SendFeedbackBtn"]
+	SettingsBtn['text'] = translations[currentTranslation]["SettingsBtn"]
 	exitBtn['text'] = translations[currentTranslation]["ExitBtn"]
 	selectorApp.update_idletasks()
 
@@ -117,15 +128,36 @@ def exitAll():
 	if(selectorApp != "." or selectorApp != None):
 		selectorApp.destroy();
 
-def showFeedbackMenu():
+def showResult(fileName):
 	global functApp
 	functApp = tk.Tk()
-	functApp.title(translations[currentTranslation]["no"])
-	functApp.geometry("120x50")
-	noText = tk.Label(master=functApp,text=translations[currentTranslation]["wip"])
+	functApp.title(translations[currentTranslation]["result"])
+	canvas = Canvas(functApp)
+	fileName = f"./{fileName}"
+	imageObject = Image.open(fileName);
+	img1 = ImageTk.PhotoImage(imageObject)
+	print(fileName)
+	image = canvas.create_image(0, 0, anchor='nw',image=img1);
 	exitBtn = tk.Button(master=functApp,text=translations[currentTranslation]["ok"],command=functApp.destroy)
-	noText.pack()
 	exitBtn.pack()
+	image.pack()
+
+
+def showSettingsMenu():
+	global functApp,settings,checkboxes
+	functApp = tk.Tk()
+	functApp.geometry("256x64")
+	functApp.title(translations[currentTranslation]["settingsTitle"])
+	lb1 = tk.Label(functApp,text=translations[currentTranslation]["settingsMainText"])
+	lb1.pack()
+	def setSetting(setting):
+		settings[setting] = not settings[setting]
+	for setting in settings:
+		cb1 = tk.Checkbutton(functApp,text=translations[currentTranslation][f"setting:{setting}"],command=lambda: setSetting(setting))
+		if(settings[setting]):
+			cb1.select()
+		cb1.pack_configure(side="left")
+		
 
 def sumArr(arr):
 		summ = 0;
@@ -138,6 +170,7 @@ def getImage():
 	ret = askopenfile(filetypes=[(translations[currentTranslation]["images"],("*.png","*.jpeg","*.jpg"))])
 	if(ret != None):
 		statusLabel['text'] = translations[currentTranslation]["ready"]
+		functApp.focus_force()
 		functApp.update_idletasks()
 		imagePath = ret.name
 
@@ -154,14 +187,17 @@ def normaliseRGB(rgbTuple):
 
 
 def saveImage(imageObject):
-	global filename
+	global filename,settings
 	def sF():
 		showInfo(translations[currentTranslation]["info"],translations[currentTranslation]["saveInfo"])
 		global filename
 		file = open(input1.get()+".png",'wb')
 		imageObject.save(file)
+		if(settings["showRes"]):
+			imageObject.show(title=translations[currentTranslation]["result"])
 		aFA.destroy()
 	aFA = tk.Tk()
+	aFA.focus_set()
 	aFA.title(translations[currentTranslation]["save"])
 	text1 = tk.Label(master=aFA,text=translations[currentTranslation]["askFilename"])
 	text1.pack()
@@ -210,6 +246,7 @@ def createFuncApp(titleTop,titleBox,resoluton,startBtnFunc):
 	global functApp,progressBar,statusLabel
 	functAppActive = True;
 	functApp = tk.Tk()
+	functApp.focus_set()
 	functApp.resizable(0,0)
 	functApp.title(titleTop)
 	functApp.geometry(resoluton)
@@ -406,8 +443,8 @@ ShiftRGBBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]
 ShiftRGBBtn.pack()
 GetMedianBrightnessBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["BrightnessText1"],command=getMedianBrightness)
 GetMedianBrightnessBtn.pack()
-SendFeedbackBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["SendFeedbackBtn"],command=showFeedbackMenu)
-SendFeedbackBtn.pack_configure(side='right')
+SettingsBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["SettingsBtn"],command=showSettingsMenu)
+SettingsBtn.pack_configure(side='right')
 exitBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["ExitBtn"],command=exitAll)
 exitBtn.pack_configure(side='left')
 LanguageSelector = tk.Button(master=selectorApp,text=translations[currentTranslation]["Language"],command=nextLanguage)
