@@ -9,3 +9,4 @@ Written in Python with Pillow and tkinter<br >
 3. RGB shifter
    - Overflow wrap included!
 4. Average brightness counter
+5. Metadata stripper (kinda)
