@@ -4,8 +4,13 @@ from tkinter.filedialog import askopenfile
 import tkinter.ttk as ttk
 from PIL import Image,ImageDraw,ImageFont,ImageTk
 import math
-version = "0.1.2"
+version = "0.1.3"
 currentTranslation = 0
+
+filetypes = ["PNG","JPEG","BMP","GIF","ICO","WebP"]
+filetypesEx = ["PNG","JPEG","BMP","GIF","ICO","WebP" ,"EPS","IM","PCX","PPM","SGI","SPIDER","TGA","TIFF","PDF"]
+filetypesS = ['.png', '.jpeg', '.bmp', '.gif', '.ico', '.webp']
+filetypesExS = ['.png', '.jpeg', '.bmp', '.gif', '.ico', '.webp', '.eps', '.im', '.pcx', '.ppm', '.sgi', '.spider', '.tga', '.tiff', '.pdf']
 translations = [{
 	#basic buttons and whatnot
 	"basic:language": "EN",
@@ -44,6 +49,7 @@ translations = [{
 	"button:normText1": "Normalizer",
 	"button:greyscaleText1": "Greyscaler",
 	"button:ExitBtn": "Exit",
+	"button:FTChangerBtn":"Change image type",
 	#action text (doing something)
 	"action:greyscaleAct": "Greyscaling",
 	"action:RGBShiftTextAct": "Shifing",
@@ -57,7 +63,8 @@ translations = [{
 	"rgbs:noChanges": "No changes made",
 	#settings
 	"setting:showRes": "Show result",
-	"setting:showBefore": "Show before and after images"
+	"setting:showBefore": "Show before and after images",
+	"setting:saveTypesExtended": "Show all image convertion types"
 },{
 	#basic buttons and whatnot
 	"basic:language": "RU",
@@ -96,6 +103,7 @@ translations = [{
 	"button:normText1": "Нормализатор",
 	"button:greyscaleText1": "Ч/Б преобразователь",
 	"button:ExitBtn": "Выйти",
+	"button:FTChangerBtn":"Сменить тип картинки",
 	#action text (doing something)
 	"action:greyscaleAct": "Ч/Б'шаем",
 	"action:RGBShiftTextAct": "Сдвигаем",
@@ -109,7 +117,8 @@ translations = [{
 	"rgbs:noChanges": "Нет изменений",
 	#settings
 	"setting:showRes": "Показывать результат",
-	"setting:showBefore": "Показывать изображение до и после"
+	"setting:showBefore": "Показывать изображение до и после",
+	"setting:saveTypesExtended": "Показать все форматы для конвертации"
 }]
 functApp = None;
 imagePath = None;
@@ -117,10 +126,12 @@ progressBar = None;
 statusLabel = None;
 filename = None;
 LanguageSelector = None;
-
+fileType = None;
+list1 = None;
 settings = {
 	"showRes": True,
-	"showBefore": False
+	"showBefore": False,
+	"saveTypesExtended": False 
 }
 
 def nextLanguage():
@@ -188,7 +199,7 @@ def sumArr(arr):
 
 def getImage():
 	global imagePath,statusLabel,functApp
-	ret = askopenfile(filetypes=[(translations[currentTranslation]["basic:images"],("*.png","*.jpeg","*.jpg"))])
+	ret = askopenfile(filetypes=[(translations[currentTranslation]["basic:images"],("*.png","*.jpeg","*.jpg","*.bmp","*.dds","*.dib","*.eps","*.icns","*.ico","*.im","*.msp","*.pcx","*.ppm","*.sgi","*.spider","*.tga","*.tiff","*.webp","*.xbm"))])
 	if(ret != None):
 		statusLabel['text'] = translations[currentTranslation]["basic:ready"]
 		functApp.focus_force()
@@ -206,15 +217,15 @@ def normaliseRGB(rgbTuple):
 		return (0,0,0)
 
 
-def saveImage(imageObject,skipShow=False,baseline=None):
+def saveImage(imageObject,skipShow=False,baseline=None,filetype=0):
 	global filename,settings
 	def sF():
 		global filename,settings
 		if(len(input1.get()) == 0):
 			return
 		showInfo(translations[currentTranslation]["basic:info"],translations[currentTranslation]["basic:saveInfo"])
-		file = open(input1.get()+".png",'wb')
-		imageObject.save(file)
+		file = open(input1.get()+str(filetypesExS[filetype]),'wb')
+		imageObject.save(file,format=filetypesEx[filetype])
 		if(settings["showRes"] and skipShow == False):
 			showResult(baseline,imageObject)
 		aFA.destroy()
@@ -455,15 +466,40 @@ def metascrapper():
 		statusLabel['text'] = translations[currentTranslation]["basic:noImage"]
 		functApp.update_idletasks()
 
+def filechanger():
+	if(imagePath != None):
+		if(list1.curselection() != ()):
+			imType = None;
+			image = Image.open(imagePath)
+			saveImage(image,filetype=list1.curselection()[0],skipShow=True)
+		else:
+			statusLabel['text'] = translations[currentTranslation]["rgbs:noChanges"]
+			functApp.update_idletasks()
+	else:
+		statusLabel['text'] = translations[currentTranslation]["basic:noImage"]
+		functApp.update_idletasks()
+
 def scrapeMetaApp():
 	createFuncApp(translations[currentTranslation]["title:metascraper"],translations[currentTranslation]["info:metascraper"],"250x125",metascrapper)
 
 def getMedianBrightness():
 	createFuncApp(translations[currentTranslation]["button:BrightnessText1"],translations[currentTranslation]["info:BrightnessText2"],"250x125",findBrightness)
 
+def fileChangeApp():
+	global functApp,list1
+	createFuncApp(translations[currentTranslation]["button:FTChangerBtn"],translations[currentTranslation]["button:FTChangerBtn"],"250x250",filechanger)
+	list1 = tk.Listbox(master=functApp,width=20,height=10)
+	if(settings["saveTypesExtended"] == False):
+		for form in filetypes:
+			list1.insert(tk.END,form)
+	else:
+		for form in filetypesEx:
+			list1.insert(tk.END,form)
+	list1.pack()
+
 selectorApp = tk.Tk()
 selectorApp.title(translations[currentTranslation]["title:SelectorAppTitle"])
-selectorApp.geometry("300x190")
+selectorApp.geometry("300x220")
 selectorApp.resizable(0,0)
 MainText = tk.Label(master=selectorApp,text=translations[currentTranslation]["title:SelectorAppTitle"]+"\n"+translations[currentTranslation]["info:SelectorAppText1.1"]+":")
 MainText.pack()
@@ -477,6 +513,8 @@ GetMedianBrightnessBtn = tk.Button(master=selectorApp,text=translations[currentT
 GetMedianBrightnessBtn.pack()
 BtnMetascraper = tk.Button(master=selectorApp,text=translations[currentTranslation]["button:BtnMetascraper"],command=scrapeMetaApp)
 BtnMetascraper.pack()
+FTChangerBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["button:FTChangerBtn"],command=fileChangeApp)
+FTChangerBtn.pack()
 SettingsBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["button:SettingsBtn"],command=showSettingsMenu)
 SettingsBtn.pack_configure(side='right')
 exitBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["button:ExitBtn"],command=exitAll)
