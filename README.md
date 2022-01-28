@@ -10,3 +10,4 @@ Written in Python with Pillow and tkinter<br >
    - Overflow wrap included!
 4. Average brightness counter
 5. Metadata stripper (kinda)
+6. Filetype changer
