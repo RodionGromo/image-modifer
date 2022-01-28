@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import StringVar,Canvas,BooleanVar
 from tkinter.filedialog import askopenfile
 import tkinter.ttk as ttk
 from PIL import Image,ImageDraw,ImageFont,ImageTk
