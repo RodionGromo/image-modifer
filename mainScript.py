@@ -160,19 +160,27 @@ def exitAll():
 	if(selectorApp != "." or selectorApp != None):
 		selectorApp.destroy();
 
-def showResult(beforeImage,afterImage):
+
+def showResult(beforeImage,afterImage,file=None):
 	global settings
+	Fa = tk.Tk()
 	print(beforeImage,afterImage)
 	x,y = beforeImage.size
 	if(settings['showBefore']):
-		baseImage = Image.new("RGB",(math.floor((x+100)*2),y),color=(255,255,255))
+		baseImage = Image.new("RGB",(math.floor(x*2)+100,y),color=(255,255,255))
 		baseImage.paste(beforeImage)
 		baseImage.paste(afterImage,(x+100,0))
+		x = (x * 2)+ 100
+		#Fa.geometry(f"{x}x{y}")
 	else:
 		baseImage = Image.new("RGB",(x,y),color=(255,255,255))
 		baseImage.paste(afterImage)
-	baseImage.show()
-
+	im = Image.open(r"C:\Users\user\Desktop\412.png")
+	img = ImageTk.PhotoImage(image=im)
+	lab1 = tk.Label(master=Fa,image=img)
+	lab1.image = img
+	lab1.pack()
+	#baseImage.show()
 
 def showSettingsMenu():
 	global functApp,settings,checkboxes
@@ -183,12 +191,20 @@ def showSettingsMenu():
 	lb1.pack()
 	def setSetting(setting):
 		settings[setting] = not settings[setting]
-	for setting in settings:
-		cb1 = tk.Checkbutton(functApp,text=translations[currentTranslation][f"setting:{setting}"],command=lambda: setSetting(setting))
-		if(settings[setting]):
-			cb1.select()
-		cb1.pack()
-		
+		print(settings)
+	settingsKeysList = list(settings.keys())
+	cb1 = tk.Checkbutton(functApp,text=translations[currentTranslation][f"setting:{settingsKeysList[0]}"],command=lambda: setSetting(settingsKeysList[0]))
+	if(settings[settingsKeysList[0]]):
+		cb1.select()
+	cb1.pack()
+	cb2 = tk.Checkbutton(functApp,text=translations[currentTranslation][f"setting:{settingsKeysList[1]}"],command=lambda: setSetting(settingsKeysList[1]))
+	if(settings[settingsKeysList[1]]):
+		cb2.select()
+	cb2.pack()
+	cb3 = tk.Checkbutton(functApp,text=translations[currentTranslation][f"setting:{settingsKeysList[2]}"],command=lambda: setSetting(settingsKeysList[2]))
+	if(settings[settingsKeysList[2]]):
+		cb3.select()
+	cb3.pack()
 
 def sumArr(arr):
 		summ = 0;
@@ -203,6 +219,12 @@ def getImage():
 		statusLabel['text'] = translations[currentTranslation]["basic:ready"]
 		functApp.focus_force()
 		functApp.update_idletasks()
+		imagePath = ret.name
+
+def silentOpenImage():
+	global imagePath
+	ret = askopenfile(filetypes=[(translations[currentTranslation]["basic:images"],("*.png","*.jpeg","*.jpg","*.bmp","*.dds","*.dib","*.eps","*.icns","*.ico","*.im","*.msp","*.pcx","*.ppm","*.sgi","*.spider","*.tga","*.tiff","*.webp","*.xbm"))])
+	if(ret != None):
 		imagePath = ret.name
 
 def normaliseRGB(rgbTuple):
@@ -223,8 +245,8 @@ def saveImage(imageObject,skipShow=False,baseline=None,filetype=0):
 		if(len(input1.get()) == 0):
 			return
 		showInfo(translations[currentTranslation]["basic:info"],translations[currentTranslation]["basic:saveInfo"])
-		file = open(input1.get()+str(filetypesExS[filetype]),'wb')
-		imageObject.save(file,format=filetypesEx[filetype])
+		#file = open(input1.get()+str(filetypesExS[filetype]),'wb')
+		#imageObject.save(file,format=filetypesEx[filetype])
 		if(settings["showRes"] and skipShow == False):
 			showResult(baseline,imageObject)
 		aFA.destroy()
@@ -496,12 +518,28 @@ def fileChangeApp():
 			list1.insert(tk.END,form)
 	list1.pack()
 
+def openShowImage():
+	global imagePath
+	silentOpenImage()
+	showApp = tk.Toplevel()
+	print(imagePath)
+	im = Image.open(fr"{imagePath}")
+	img = ImageTk.PhotoImage(image=im)
+	lab1 = tk.Label(master=showApp,image=img)
+	lab1.image = img
+	lab1.pack()
+	btnOk = tk.Button(master=showApp,text=translations[currentTranslation][])
+	showApp.mainloop()
+
+
 selectorApp = tk.Tk()
 selectorApp.title(translations[currentTranslation]["title:SelectorAppTitle"])
-selectorApp.geometry("300x220")
+selectorApp.geometry("300x240")
 selectorApp.resizable(0,0)
 MainText = tk.Label(master=selectorApp,text=translations[currentTranslation]["title:SelectorAppTitle"]+"\n"+translations[currentTranslation]["info:SelectorAppText1.1"]+":")
 MainText.pack()
+OpenFileBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["basic:openImage"],command=openShowImage)
+OpenFileBtn.pack()
 NormaliseBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["button:normText1"],command=normaliseImage)
 NormaliseBtn.pack()
 BrightnessBtn = tk.Button(master=selectorApp,text=translations[currentTranslation]["button:greyscaleText1"],command=greyscaleImage)
